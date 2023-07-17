@@ -1,0 +1,10 @@
+[Unit]
+Description=Scrapper Notification Timer
+Requires=scrapper_notification@%i.service
+
+[Timer]
+OnUnitActiveSec=30m
+Unit=scrapper_notification@%i.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Promoklocki Notifier Database Runner Service
+After=network.target docker.service
+
+[Service]
+User=%i
+Type=oneshot
+ExecStart=/usr/bin/docker-compose up -d
+WorkingDirectory=/home/%i/Documents/PYTHON/promoklocki_notifier
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+version: '3'
+
+networks:
+  frontend:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+services:
+  database:
+    image: 'postgres:latest'
+    shm_size: 1g
+    networks:
+      frontend:
+        ipv4_address: 172.20.0.6
+    container_name: promo_database
+
+    ports:
+      - 5432:5432
+
+    environment:
+      POSTGRES_USER: promo_manager
+      POSTGRES_PASSWORD: promo
+      POSTGRES_DB: promo_database
+
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+      - ./db-queries/CreateDB.sql:/docker-entrypoint-initdb.d/CreateDB.sql

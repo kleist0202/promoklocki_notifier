@@ -1,0 +1,16 @@
+[Unit]
+Description=Scrapper Runner
+After=network.target
+
+[Service]
+User=%i
+Type=oneshot
+ExecStart=/home/%i/.local/bin/promo_start
+Restart=on-failure
+Environment="DISPLAY=:0" "XAUTHORITY=/home/%i/.Xauthority" "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus"
+
+[Install]
+WantedBy=multi-user.target
+
+[Install]
+WantedBy=timers.target
