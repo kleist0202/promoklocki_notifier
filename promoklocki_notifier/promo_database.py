@@ -12,12 +12,6 @@ from dataclasses import asdict
 
 
 class DataBase:
-    DB_NAME: str = "promo_database"
-    DB_USER: str = "promo_manager"
-    DB_PASS: str = "promo"
-    DB_HOST: str = "172.20.0.6"
-    DB_PORT: str = "5432"
-
     def __init__(self, db_passes) -> None:
         name, user, password, host, port = db_passes
         self.conn = psycopg2.connect(

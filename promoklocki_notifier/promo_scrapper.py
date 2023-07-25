@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -58,10 +58,11 @@ class MainDataLog:
 
 
 class Scrapper:
-    def __init__(self) -> None:
+    def __init__(self, data_config: Tuple[str, int]) -> None:
         self.page_url = "https://promoklocki.pl"
+        self.lego_type, self.max_pages = data_config
 
-    def get_html(self, page) -> str:
+    def get_html(self, page: str) -> str:
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0"
         }
@@ -74,13 +75,12 @@ class Scrapper:
     def start_scrapping(self):
         all_sets = []
         counter = 1
-        max_pages = 1
 
         while True:
-            if counter > max_pages:
+            if counter > self.max_pages:
                 break
 
-            subpage = f"/?s=star+wars&p={counter}"
+            subpage = f"/?s={self.lego_type}&p={counter}"
             prodcuts = self.get_sets(self.page_url , subpage)
             if prodcuts:
                 all_sets.extend(prodcuts)
@@ -115,6 +115,9 @@ class Scrapper:
                 product_link = url + product_link_raw["href"]
                 product_html = self.get_html(product_link)
                 product_soup = BeautifulSoup(product_html, "lxml")
+
+                one_product_name = product_soup.select("div.main > div.container > div.content > div.d-flex")
+                name_raw = one_product_name[0].find_all("h1")
 
                 one_product = product_soup.select("div.main > div.container > div.content > div.row > div.col-md-6 > dl.row")
                 values_raw = one_product[0].find_all("dd")
@@ -155,7 +158,6 @@ class Scrapper:
                         elif t.text == lowest_price_recognizer:
                             lowest_price_str = v.text.strip()
                             lowest_price = float(lowest_price_str.replace(",", ".").replace(" zł", ""))
-                            print("LOWEST:", lowest_price)
                         elif t.text == catalog_price_recognizer:
                             catalog_price_str = v.text.strip()
                             catalog_price = catalog_price_str.replace(",", ".").replace(" zł", "")
@@ -167,16 +169,15 @@ class Scrapper:
                                 historically_lowest_price = matches.group(1).replace(",", ".")
                                 historically_lowest_price_date = matches.group(2)
 
-                # print(name)
-                # print(catalog_number)
-                # print(number_of_elements)
-                # print(number_of_minifigures)
-                # print(date)
-                # print(lowest_price)
-                # print(catalog_price)
-                # print(historically_lowest_price)
-                # print(historically_lowest_price_date)
-                # print()
+                if name is None and name_raw is not None:
+                    name_text = name_raw[0].text
+                    name_pattern = r"LEGO® \d+ Star Wars - (.+)"
+                    match = re.match(name_pattern, name_text)
+                    if match:
+                        set_name = match.group(1)
+                        name = set_name
+                    else:
+                        print("Set name not found.")
             
             all_links.append(
                 MainData(
@@ -240,8 +241,13 @@ def main() -> None:
     port = configure.getint('database', 'port')
     db_data = (name, user, password, host, port)
 
+    subsite = configure.get("scraping", "subsite")
+    pages = configure.get("scraping", "pages")
+
+    scrap_config = (subsite, int(pages))
+
     db = DataBase(db_data)
-    scrapper = Scrapper()
+    scrapper = Scrapper(scrap_config)
 
     all_sets = []
     all_sets = scrapper.start_scrapping()
