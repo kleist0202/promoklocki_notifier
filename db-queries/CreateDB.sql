@@ -33,8 +33,8 @@ BEGIN
         INSERT INTO lego_main_info_log (catalog_number, production_link, name, lowest_price, number_of_elements, number_of_minifigures, date, operation)
         VALUES (NEW.catalog_number, NEW.production_link, NEW.name, NEW.lowest_price, NEW.number_of_elements, NEW.number_of_minifigures, NEW.date, 'I');
     ELSIF TG_OP = 'UPDATE' THEN
-        IF (OLD.catalog_number, OLD.production_link, OLD.name, OLD.lowest_price, OLD.number_of_elements, OLD.number_of_minifigures, OLD.date) IS DISTINCT FROM
-           (NEW.catalog_number, NEW.production_link, NEW.name, NEW.lowest_price, NEW.number_of_elements, NEW.number_of_minifigures, NEW.date)
+        IF (OLD.catalog_number, OLD.production_link, OLD.name, OLD.number_of_elements, OLD.number_of_minifigures, OLD.date) IS DISTINCT FROM
+           (NEW.catalog_number, NEW.production_link, NEW.name, NEW.number_of_elements, NEW.number_of_minifigures, NEW.date) OR ABS(NEW.lowest_price - OLD.lowest_price) > 1.00
         THEN
             INSERT INTO lego_main_info_log (catalog_number, production_link, name, lowest_price, number_of_elements, number_of_minifigures, date, operation)
             VALUES (NEW.catalog_number, NEW.production_link, NEW.name, NEW.lowest_price, NEW.number_of_elements, NEW.number_of_minifigures, NEW.date, 'U');
