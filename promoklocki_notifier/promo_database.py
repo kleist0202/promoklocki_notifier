@@ -117,3 +117,11 @@ class DataBase:
             cursor.execute(query, (product_id, timestamp))
             rows = cursor.fetchall()
         return rows
+
+    def get_products_reverse(self) -> list[tuple[Any, ...]]:
+        rows: list[tuple[Any, ...]] = []
+        with self.conn.cursor() as cursor:
+            query = "SELECT * FROM lego_main_info ORDER BY name ASC"
+            cursor.execute(query)
+            rows = cursor.fetchall()
+        return rows
