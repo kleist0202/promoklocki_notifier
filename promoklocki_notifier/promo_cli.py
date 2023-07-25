@@ -113,7 +113,7 @@ class ProdcutsFormat(CliFormat):
         if self.logs_number == 0:
             print("No products.")
             return False
-        mdl = MainData.create_from_tuple(self.rows[self.current_entry])
+        mdl = self.rows[self.current_entry]
 
         print("--------------------------------")
         self.format_log(mdl)

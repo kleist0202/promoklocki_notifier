@@ -1,9 +1,9 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 
-if TYPE_CHECKING:
-    from .promo_scrapper import MainData
-    import datetime
+# if TYPE_CHECKING:
+from .promo_models import MainData
+import datetime
 
 import psycopg2
 from psycopg2 import sql
@@ -118,10 +118,11 @@ class DataBase:
             rows = cursor.fetchall()
         return rows
 
-    def get_products_reverse(self) -> list[tuple[Any, ...]]:
-        rows: list[tuple[Any, ...]] = []
+    def get_products_reverse(self) -> List[MainData]:
         with self.conn.cursor() as cursor:
             query = "SELECT * FROM lego_main_info ORDER BY name ASC"
             cursor.execute(query)
             rows = cursor.fetchall()
+
+        rows: List[MainData] = [MainData.create_from_tuple(row) for row in rows]
         return rows
