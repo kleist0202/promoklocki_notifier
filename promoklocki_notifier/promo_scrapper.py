@@ -174,7 +174,7 @@ class Notificator:
                     info += f"{key}:  "
                     info += f"Old: {val[1]}  "
                     info += f"<b>New: {val[0]}</b>\n"
-                self.message = f"'Set: {latest_log.name} was updated!' 'Check it on: {latest_log.production_link}\n{info}'"
+                self.message = f"\"Set: {latest_log.name} was updated!\" \"Check it on: {latest_log.production_link}\n{info}\""
 
     def notify(self) -> None:
         latest_list = self.db.select_not_accepted_logs()
