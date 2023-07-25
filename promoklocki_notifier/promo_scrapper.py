@@ -98,8 +98,14 @@ class Scrapper:
                             name = v.text.strip()
                         elif t.text == catalog_number_recognizer:
                             catalog_number_str = v.text.strip()
-                            catalog_number_searched = re.search(r'\d+', catalog_number_str).group(0)
-                            catalog_number = int(catalog_number_searched)
+                            catalog_number_searched = re.search(r'\d+', catalog_number_str)
+                            if catalog_number_searched is None:
+                                continue
+                            catalog_number_searched_group_zero = catalog_number_searched.group(0)
+                            try:
+                                catalog_number = int(catalog_number_searched_group_zero)
+                            except ValueError:
+                                pass
                         elif t.text == number_of_elements_recognizer:
                             number_of_elements_str = v.text.strip()
                             number_of_elements = int(number_of_elements_str)
@@ -166,8 +172,9 @@ class Notificator:
         elif latest_log.operation == "U":
             rows = self.db.get_product_logs(latest_log.catalog_number, latest_log.changed_on)
             if len(rows) > 1:
-                latest_log = MainData.create_from_tuple(rows[0][1:-3])
-                second_latest_log = MainData.create_from_tuple(rows[1][1:-3])
+                latest_log = rows[0]
+                second_latest_log = rows[1]
+
                 diff = latest_log.get_differences(second_latest_log)
                 info = "<b>Changes:</b>\n"
                 for key, val in diff.items():
@@ -179,7 +186,7 @@ class Notificator:
     def notify(self) -> None:
         latest_list = self.db.select_not_accepted_logs()
         for latest in latest_list:
-            data_log_object = MainDataLog.create_from_tuple(latest)
+            data_log_object = latest
             self.assembly_message(data_log_object)
 
             command = f"{self.command} -t {self.expiration_time} {self.message}"

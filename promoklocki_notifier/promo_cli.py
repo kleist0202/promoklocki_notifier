@@ -1,7 +1,7 @@
-from typing import Any
+from typing import Any, List, Optional, Union
 from .promo_database import DataBase
 from .promo_utils import *
-from .promo_scrapper import MainData, MainDataLog
+from .promo_models import MainData, MainDataLog
 import os
 from configparser import ConfigParser
 import argparse
@@ -15,12 +15,14 @@ class CliFormat(ABC):
         self.db: DataBase = db
         self.logs_number: int = 0
         self.current_entry: int = 0
-        self.rows: list[tuple[Any, ...]] = []
-
-        self.get_all_logs()
+        self.rows: Union[List[MainDataLog], List[MainData]] = self.get_all_logs()
 
     @abstractmethod
     def get_all_logs(self):
+        pass
+
+    @abstractmethod
+    def show(self):
         pass
 
 
@@ -43,8 +45,8 @@ class LogsFormat(CliFormat):
 
         rows = self.db.get_product_logs(log_object.catalog_number, log_object.changed_on)
         if len(rows) > 1:
-            latest_log = MainData.create_from_tuple(rows[0][1:-3])
-            second_latest_log = MainData.create_from_tuple(rows[1][1:-3])
+            latest_log = rows[0]
+            second_latest_log = rows[1]
             diff = latest_log.get_differences(second_latest_log)
             info = print_bold("Changes:\n")
             for key, val in diff.items():
@@ -53,15 +55,14 @@ class LogsFormat(CliFormat):
                 info += print_warning(f"New: {val[0]}\n")
             print(f"{info}")
 
-    def get_all_logs(self) -> None:
-        self.rows = self.db.select_not_accepted_logs_reverse()
-        self.logs_number = len(self.rows)
+    def get_all_logs(self) -> List[MainDataLog]:
+        return self.db.select_not_accepted_logs_reverse()
 
     def show(self):
-        if self.logs_number == 0:
+        if len(self.rows) == 0:
             print("No products.")
             return False
-        md = MainDataLog.create_from_tuple(self.rows[self.current_entry])
+        md = self.rows[self.current_entry]
         is_accepted = md.accepted
 
         print("--------------------------------")
@@ -72,11 +73,11 @@ class LogsFormat(CliFormat):
             print("Accept current log? [a]")
 
         print("Exit program. [q]")
-        print(f"Next or previous log ({self.current_entry+1}/{self.logs_number}). [n/p]")
+        print(f"Next or previous log ({self.current_entry+1}/{len(self.rows)}). [n/p]")
         action = input("Action: ")
 
         if action in ["n", "N"]:
-            if self.current_entry < self.logs_number - 1:
+            if self.current_entry < len(self.rows) - 1:
                 self.current_entry += 1
         elif action in ["p", "P"]:
             if self.current_entry > 0:
@@ -87,7 +88,7 @@ class LogsFormat(CliFormat):
         if not is_accepted:
             if action == "a":
                 self.db.accept_log(md.log_id)
-                if self.current_entry == self.logs_number - 1:
+                if self.current_entry == len(self.rows) - 1:
                     self.current_entry -= 1
                 self.get_all_logs()
 
@@ -98,32 +99,31 @@ class ProdcutsFormat(CliFormat):
     def __init__(self, db) -> None:
         super().__init__(db)
 
-    def get_all_logs(self) -> None:
-        self.rows = self.db.get_products_reverse()
-        self.logs_number = len(self.rows)
+    def get_all_logs(self) -> List[MainData]:
+        return self.db.get_products_reverse()
 
-    def sort_by_lowest_price_with_none(self, obj):
+    def sort_by_lowest_price_with_none(self, obj: MainData):
         return obj.lowest_price if obj.lowest_price is not None else float('inf')
 
-    def sort_by_lowest_price_with_none_reverse(self, obj):
+    def sort_by_lowest_price_with_none_reverse(self, obj: MainData):
         return obj.lowest_price if obj.lowest_price is not None else float('-inf')
 
-    def sort_by_elements_with_none(self, obj):
+    def sort_by_elements_with_none(self, obj: MainData):
         return obj.number_of_elements if obj.number_of_elements is not None else float('inf')
 
-    def sort_by_elements_with_none_reverse(self, obj):
+    def sort_by_elements_with_none_reverse(self, obj: MainData):
         return obj.number_of_elements if obj.number_of_elements is not None else float('-inf')
 
-    def sort_by_figures_with_none(self, obj):
+    def sort_by_figures_with_none(self, obj: MainData):
         return obj.number_of_minifigures if obj.number_of_minifigures is not None else float('inf')
 
-    def sort_by_figures_with_none_reverse(self, obj):
+    def sort_by_figures_with_none_reverse(self, obj: MainData):
         return obj.number_of_minifigures if obj.number_of_minifigures is not None else float('-inf')
 
-    def sort_by_date_with_none(self, obj):
+    def sort_by_date_with_none(self, obj: MainData):
         return obj.date if obj.date is not None else datetime.date.max
 
-    def sort_by_date_with_none_reverse(self, obj):
+    def sort_by_date_with_none_reverse(self, obj: MainData):
         return obj.date if obj.date is not None else datetime.date.min
 
     def sort_them(self, sort_type) -> None:
@@ -163,7 +163,7 @@ class ProdcutsFormat(CliFormat):
         print(f"Price: {object.lowest_price}")
 
     def show(self):
-        if self.logs_number == 0:
+        if len(self.rows) == 0:
             print("No products.")
             return False
         mdl = self.rows[self.current_entry]
@@ -173,13 +173,13 @@ class ProdcutsFormat(CliFormat):
         print("--------------------------------")
 
         print("Exit program. [q]")
-        print("Sort by name/price/elements/figures/date. [sn, sp, se, sf, sd]")
+        print("Sort by [n]ame/[p]rice/[e]lements/[f]igures/[d]ate. [sn, sp, se, sf, sd]")
         print("End with [r] for reverse sorting.")
-        print(f"Next or previous product ({self.current_entry+1}/{self.logs_number}). [n/p]")
+        print(f"Next or previous product ({self.current_entry+1}/{len(self.rows)}). [n/p]")
         action = input("Action: ")
 
         if action in ["n", "N"]:
-            if self.current_entry < self.logs_number - 1:
+            if self.current_entry < len(self.rows) - 1:
                 self.current_entry += 1
         elif action in ["p", "P"]:
             if self.current_entry > 0:
@@ -195,8 +195,8 @@ class ProdcutsFormat(CliFormat):
 
 class Cli:
     def __init__(self, db: DataBase) -> None:
-        self.db = db
-        self.handler = None
+        self.db: DataBase = db
+        self.handler: Optional[CliFormat] = None
 
     def main_loop(self, arg) -> None:
         if arg:
@@ -211,7 +211,7 @@ class Cli:
                 break
             os.system('cls' if os.name == 'nt' else 'clear')
 
-        
+
 def main() -> None:
     p = argparse.ArgumentParser(formatter_class=argparse.MetavarTypeHelpFormatter)
     group = p.add_mutually_exclusive_group()
@@ -224,13 +224,12 @@ def main() -> None:
 
     args = vars(p.parse_args())
 
+    logs_or_products = True
+
     if args["logs"]:
         logs_or_products = True
     elif args["products"]:
         logs_or_products = False
-    else:
-        print("Something went wrong.")
-        quit()
 
     configure = ConfigParser()
 

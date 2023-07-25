@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, List
 
 # if TYPE_CHECKING:
-from .promo_models import MainData
+from .promo_models import MainData, MainDataLog
 import datetime
 
 import psycopg2
@@ -42,8 +42,8 @@ class DataBase:
             cursor.execute(query, data_tuple)
             self.conn.commit()
 
-    def select_not_accepted_logs(self) -> list[tuple[Any, ...]]:
-        rows = []
+    def select_not_accepted_logs(self) -> List[MainDataLog]:
+        rows: List[MainDataLog] = []
         with self.conn.cursor() as cursor:
             query = sql.SQL(
                 """
@@ -56,10 +56,11 @@ class DataBase:
             cursor.execute(query)
             rows = cursor.fetchall()
 
+        rows = [MainDataLog.create_from_tuple(row) for row in rows]
         return rows
 
-    def select_not_accepted_logs_reverse(self) -> list[tuple[Any, ...]]:
-        rows = []
+    def select_not_accepted_logs_reverse(self) -> List[MainDataLog]:
+        rows: List[MainDataLog] = []
         with self.conn.cursor() as cursor:
             query = sql.SQL(
                 """
@@ -72,11 +73,12 @@ class DataBase:
             cursor.execute(query)
             rows = cursor.fetchall()
 
+        rows = [MainDataLog.create_from_tuple(row) for row in rows]
         return rows
 
-    def select_all_logs(self, order="DESC") -> list[tuple[Any, ...]]:
+    def select_all_logs(self, order: str = "DESC") -> List[MainDataLog]:
         query = ""
-        rows: list[tuple[Any, ...]] = []
+        rows: List[MainDataLog] = []
         with self.conn.cursor() as cursor:
             query_desc = sql.SQL(
                 """
@@ -97,11 +99,12 @@ class DataBase:
             elif order == "ASC":
                 query = query_asc
             else:
-                return rows
+                return []
 
             cursor.execute(query)
             rows = cursor.fetchall()
 
+        rows = [MainDataLog.create_from_tuple(row) for row in rows]
         return rows
 
     def accept_log(self, log_id: str) -> None:
@@ -110,19 +113,20 @@ class DataBase:
             cursor.execute(query, (log_id, ))
             self.conn.commit()
 
-    def get_product_logs(self, product_id: int, timestamp: datetime.datetime) -> list[tuple[Any, ...]]:
-        rows: list[tuple[Any, ...]] = []
+    def get_product_logs(self, product_id: int, timestamp: datetime.datetime) -> List[MainDataLog]:
         with self.conn.cursor() as cursor:
             query = "SELECT * FROM lego_main_info_log WHERE catalog_number = %s AND changed_on <= %s ORDER BY changed_on DESC"
             cursor.execute(query, (product_id, timestamp))
-            rows = cursor.fetchall()
+            fetched_rows = cursor.fetchall()
+
+        rows: List[MainDataLog] = [MainDataLog.create_from_tuple(row) for row in fetched_rows]
         return rows
 
     def get_products_reverse(self) -> List[MainData]:
         with self.conn.cursor() as cursor:
             query = "SELECT * FROM lego_main_info ORDER BY name ASC"
             cursor.execute(query)
-            rows = cursor.fetchall()
+            fetched_rows = cursor.fetchall()
 
-        rows: List[MainData] = [MainData.create_from_tuple(row) for row in rows]
+        rows: List[MainData] = [MainData.create_from_tuple(row) for row in fetched_rows]
         return rows
