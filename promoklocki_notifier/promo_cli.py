@@ -6,6 +6,8 @@ import os
 from configparser import ConfigParser
 import argparse
 from abc import ABC, abstractmethod
+from operator import attrgetter
+import datetime
 
 
 class CliFormat(ABC):
@@ -100,6 +102,57 @@ class ProdcutsFormat(CliFormat):
         self.rows = self.db.get_products_reverse()
         self.logs_number = len(self.rows)
 
+    def sort_by_lowest_price_with_none(self, obj):
+        return obj.lowest_price if obj.lowest_price is not None else float('inf')
+
+    def sort_by_lowest_price_with_none_reverse(self, obj):
+        return obj.lowest_price if obj.lowest_price is not None else float('-inf')
+
+    def sort_by_elements_with_none(self, obj):
+        return obj.number_of_elements if obj.number_of_elements is not None else float('inf')
+
+    def sort_by_elements_with_none_reverse(self, obj):
+        return obj.number_of_elements if obj.number_of_elements is not None else float('-inf')
+
+    def sort_by_figures_with_none(self, obj):
+        return obj.number_of_minifigures if obj.number_of_minifigures is not None else float('inf')
+
+    def sort_by_figures_with_none_reverse(self, obj):
+        return obj.number_of_minifigures if obj.number_of_minifigures is not None else float('-inf')
+
+    def sort_by_date_with_none(self, obj):
+        return obj.date if obj.date is not None else datetime.date.max
+
+    def sort_by_date_with_none_reverse(self, obj):
+        return obj.date if obj.date is not None else datetime.date.min
+
+    def sort_them(self, sort_type) -> None:
+        if sort_type.startswith("sn"):
+            if sort_type.endswith("r"):
+                self.rows = sorted(self.rows, key=attrgetter("name"), reverse=True)
+            else:
+                self.rows = sorted(self.rows, key=attrgetter("name"))
+        elif sort_type.startswith("sp"):
+            if sort_type.endswith("r"):
+                self.rows = sorted(self.rows, key=self.sort_by_lowest_price_with_none_reverse, reverse=True)
+            else:
+                self.rows = sorted(self.rows, key=self.sort_by_lowest_price_with_none)
+        elif sort_type.startswith("se"):
+            if sort_type.endswith("r"):
+                self.rows = sorted(self.rows, key=self.sort_by_elements_with_none_reverse, reverse=True)
+            else:
+                self.rows = sorted(self.rows, key=self.sort_by_elements_with_none)
+        elif sort_type.startswith("sf"):
+            if sort_type.endswith("r"):
+                self.rows = sorted(self.rows, key=self.sort_by_figures_with_none_reverse, reverse=True)
+            else:
+                self.rows = sorted(self.rows, key=self.sort_by_figures_with_none)
+        elif sort_type.startswith("sd"):
+            if sort_type.endswith("r"):
+                self.rows = sorted(self.rows, key=self.sort_by_date_with_none_reverse, reverse=True)
+            else:
+                self.rows = sorted(self.rows, key=self.sort_by_date_with_none)
+
     def format_log(self, object: MainData) -> None:
         print(f"Catalog number: {object.catalog_number}")
         print(f"Name: {object.name}")
@@ -120,6 +173,8 @@ class ProdcutsFormat(CliFormat):
         print("--------------------------------")
 
         print("Exit program. [q]")
+        print("Sort by name/price/elements/figures/date. [sn, sp, se, sf, sd]")
+        print("End with [r] for reverse sorting.")
         print(f"Next or previous product ({self.current_entry+1}/{self.logs_number}). [n/p]")
         action = input("Action: ")
 
@@ -131,6 +186,9 @@ class ProdcutsFormat(CliFormat):
                 self.current_entry -= 1
         elif action in ["q", "Q"]:
             return False
+        elif action.lower().startswith(("sp", "sn", "se", "sf", "sd")):
+            self.sort_them(action)
+            self.current_entry = 0
 
         return True
 
