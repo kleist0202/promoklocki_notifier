@@ -8,6 +8,7 @@ import argparse
 from abc import ABC, abstractmethod
 from operator import attrgetter
 import datetime
+import webbrowser
 
 
 class CliFormat(ABC):
@@ -82,6 +83,10 @@ class LogsFormat(CliFormat):
         elif action in ["p", "P"]:
             if self.current_entry > 0:
                 self.current_entry -= 1
+        elif action in ["l", "L"]:
+            web_open_result = webbrowser.open(md.production_link)
+            if not web_open_result:
+                print("Can't open this link.")
         elif action in ["q", "Q"]:
             return False
 
@@ -175,6 +180,7 @@ class ProdcutsFormat(CliFormat):
         print("Exit program. [q]")
         print("Sort by [n]ame/[p]rice/[e]lements/[f]igures/[d]ate. [sn, sp, se, sf, sd]")
         print("End with [r] for reverse sorting.")
+        print("Open set's website [l].")
         print(f"Next or previous product ({self.current_entry+1}/{len(self.rows)}). [n/p]")
         action = input("Action: ")
 
@@ -186,6 +192,10 @@ class ProdcutsFormat(CliFormat):
                 self.current_entry -= 1
         elif action in ["q", "Q"]:
             return False
+        elif action in ["l", "L"]:
+            web_open_result = webbrowser.open(mdl.production_link)
+            if not web_open_result:
+                print("Can't open this link.")
         elif action.lower().startswith(("sp", "sn", "se", "sf", "sd")):
             self.sort_them(action)
             self.current_entry = 0
