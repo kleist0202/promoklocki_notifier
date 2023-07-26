@@ -3,6 +3,8 @@ DATABASE_NAME := promo_database
 IP := $(shell docker inspect -f \
 		'{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(DATABASE_NAME))
 
+SERVICES_DIR := services
+
 USER :=
 
 # Use the USER environment variable if available, otherwise get the current user
@@ -13,9 +15,9 @@ else
 endif
 
 install:
-	cp ./scrapper_notification@.service /etc/systemd/system/
-	cp ./scrapper_notification@.timer /etc/systemd/system/
-	cp ./scrapper_database@.service /etc/systemd/system/
+	cp ./$(SERVICES_DIR)/scrapper_notification@.service /etc/systemd/system/
+	cp ./$(SERVICES_DIR)/scrapper_notification@.timer /etc/systemd/system/
+	cp ./$(SERVICES_DIR)/scrapper_database@.service /etc/systemd/system/
 	systemctl daemon-reload
 	systemctl start scrapper_notification@$(USER).service
 	systemctl start scrapper_notification@$(USER).timer
