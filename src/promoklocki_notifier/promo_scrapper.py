@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Tuple
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -7,11 +7,10 @@ import datetime
 
 import subprocess
 from .promo_database import DataBase
-from .promo_utils import *
 from configparser import ConfigParser
 import os
 import sys
-from .promo_models import MainData, MainDataLog
+from .promo_models import MainData
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -40,7 +39,7 @@ class Scrapper:
                 break
 
             subpage = f"/?s={self.lego_type}&p={counter}"
-            prodcuts = self.get_sets(self.page_url , subpage)
+            prodcuts = self.get_sets(self.page_url, subpage)
             if prodcuts:
                 all_sets.extend(prodcuts)
                 counter += 1
@@ -143,7 +142,7 @@ class Scrapper:
                         name = set_name
                     else:
                         print("Set name not found.")
-            
+
             all_links.append(
                 MainData(
                     catalog_number,
@@ -190,7 +189,7 @@ class Notificator:
             self.assembly_message(data_log_object)
 
             command = f"{self.command} -t {self.expiration_time} {self.message}"
-            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            _ = subprocess.run(command, shell=True, capture_output=True, text=True)
 
 
 def main() -> None:
@@ -201,7 +200,7 @@ def main() -> None:
     configure.read(config_path)
 
     name = configure.get("database", "name")
-    user = configure.get('database','user')
+    user = configure.get('database', 'user')
     password = configure.get('database', 'pass')
     host = configure.get('database', 'host')
     port = configure.getint('database', 'port')

@@ -7,7 +7,7 @@ class MainData:
     catalog_number: int
     production_link: str
     name: str
-    lowest_price : float
+    lowest_price: float
     number_of_elements: int
     number_of_minifigures: int
     date: datetime.date
@@ -30,7 +30,7 @@ class MainDataLog:
     catalog_number: int
     production_link: str
     name: str
-    lowest_price : float
+    lowest_price: float
     number_of_elements: int
     number_of_minifigures: int
     date: datetime.date

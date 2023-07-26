@@ -1,6 +1,6 @@
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 from .promo_database import DataBase
-from .promo_utils import *
+from .promo_utils import print_bold, print_gray, print_warning
 from .promo_models import MainData, MainDataLog
 import os
 from configparser import ConfigParser
@@ -250,7 +250,7 @@ def main() -> None:
     configure.read(config_path)
 
     name = configure.get("database", "name")
-    user = configure.get('database','user')
+    user = configure.get('database', 'user')
     password = configure.get('database', 'pass')
     host = configure.get('database', 'host')
     port = configure.getint('database', 'port')
