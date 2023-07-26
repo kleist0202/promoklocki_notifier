@@ -10,7 +10,7 @@ class MainData:
     lowest_price : float
     number_of_elements: int
     number_of_minifigures: int
-    date: datetime.time
+    date: datetime.date
 
     def get_differences(self, other):
         differences = {}

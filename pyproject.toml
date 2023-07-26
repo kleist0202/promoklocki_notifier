@@ -2,6 +2,13 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.pytest.ini_options]
+addopts = "--cov=slapping"
+testpaths = [
+    "tests",
+]
+
 [[tool.mypy.overrides]]
+mypy_path = "src"
 module = "requests.*,psycopg2.*,bs4.*"
 ignore_missing_imports = true

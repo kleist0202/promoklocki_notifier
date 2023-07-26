@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 from .promo_database import DataBase
 from .promo_utils import *
 from .promo_models import MainData, MainDataLog
@@ -16,7 +16,8 @@ class CliFormat(ABC):
         self.db: DataBase = db
         self.logs_number: int = 0
         self.current_entry: int = 0
-        self.rows: Union[List[MainDataLog], List[MainData]] = self.get_all_logs()
+        # self.rows: Union[List[MainDataLog], List[MainData]] = self.get_all_logs()
+        self.rows: List[Union[MainData, MainDataLog]] = self.get_all_logs()
 
     @abstractmethod
     def get_all_logs(self):
@@ -107,28 +108,28 @@ class ProdcutsFormat(CliFormat):
     def get_all_logs(self) -> List[MainData]:
         return self.db.get_products_reverse()
 
-    def sort_by_lowest_price_with_none(self, obj: MainData):
+    def sort_by_lowest_price_with_none(self, obj: MainData) -> float:
         return obj.lowest_price if obj.lowest_price is not None else float('inf')
 
-    def sort_by_lowest_price_with_none_reverse(self, obj: MainData):
+    def sort_by_lowest_price_with_none_reverse(self, obj: MainData) -> float:
         return obj.lowest_price if obj.lowest_price is not None else float('-inf')
 
-    def sort_by_elements_with_none(self, obj: MainData):
+    def sort_by_elements_with_none(self, obj: MainData) -> float:
         return obj.number_of_elements if obj.number_of_elements is not None else float('inf')
 
-    def sort_by_elements_with_none_reverse(self, obj: MainData):
+    def sort_by_elements_with_none_reverse(self, obj: MainData) -> float:
         return obj.number_of_elements if obj.number_of_elements is not None else float('-inf')
 
-    def sort_by_figures_with_none(self, obj: MainData):
+    def sort_by_figures_with_none(self, obj: MainData) -> float:
         return obj.number_of_minifigures if obj.number_of_minifigures is not None else float('inf')
 
-    def sort_by_figures_with_none_reverse(self, obj: MainData):
+    def sort_by_figures_with_none_reverse(self, obj: MainData) -> float:
         return obj.number_of_minifigures if obj.number_of_minifigures is not None else float('-inf')
 
-    def sort_by_date_with_none(self, obj: MainData):
+    def sort_by_date_with_none(self, obj: MainData) -> datetime.date:
         return obj.date if obj.date is not None else datetime.date.max
 
-    def sort_by_date_with_none_reverse(self, obj: MainData):
+    def sort_by_date_with_none_reverse(self, obj: MainData) -> datetime.date:
         return obj.date if obj.date is not None else datetime.date.min
 
     def sort_them(self, sort_type) -> None:
