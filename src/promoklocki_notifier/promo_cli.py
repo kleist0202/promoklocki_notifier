@@ -96,7 +96,7 @@ class LogsFormat(CliFormat):
                 self.db.accept_log(md.log_id)
                 if self.current_entry == len(self.rows) - 1:
                     self.current_entry -= 1
-                self.get_all_logs()
+                self.rows = self.get_all_logs()
 
         return True
 
