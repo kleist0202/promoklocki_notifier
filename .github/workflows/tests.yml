@@ -1,0 +1,45 @@
+name: Tests
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: promo_manager 
+          POSTGRES_PASSWORD: promo
+          POSTGRES_DB: promo_database
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          echo "POSTGRES_HOST: $POSTGRES_HOST"
+          echo "POSTGRES_USER: $POSTGRES_USER"
+          echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
+          echo "POSTGRES_DB: $POSTGRES_DB"
+          python -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          PGPASSWORD: promo
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
+      - name: Test with tox
+        run: tox
