@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  database:
+    image: 'postgres:latest'
+
+    ports:
+      - 5433:5432
+
+    environment:
+      POSTGRES_USER: promo_manager
+      POSTGRES_PASSWORD: promo
+      POSTGRES_DB: promo_database
+
+    volumes:
+      - ./db-data2:/var/lib/postgresql/data
+      - ./db-queries/CreateDB.sql:/docker-entrypoint-initdb.d/CreateDB.sql

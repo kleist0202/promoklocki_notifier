@@ -22,6 +22,9 @@ class DataBase:
             port=port,
         )
 
+    def close(self):
+        self.conn.close()
+
     def add_basic_info(self, data: MainData) -> None:
         with self.conn.cursor() as cursor:
             data_tuple = tuple(asdict(data).values())

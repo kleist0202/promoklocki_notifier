@@ -53,8 +53,11 @@ docker_ip:
 docker_connect:
 	psql -h $(IP) -p 5432 -U promo_manager -d $(DATABASE_NAME)
 
+docker_connect_test:
+	psql -h localhost -p 5433 -U promo_manager -d $(DATABASE_NAME)
+
 tables:
-	psql -U promo_manager -f tables.sql promo_database 
+	psql -U promo_manager -f tables.sql $(DATABASE_NAME)
 
 
 .PHONY: all run docker_run docker_connect docker_clean docker_ip tables install uninstall
